@@ -1,6 +1,6 @@
 import { NumberFact, FormData } from '../types';
 
-const BASE_URL = 'http://numbersapi.com';
+const BASE_URL = 'https://numbersapi.com';
 
 function formatDateNumber(dateStr: string): string {
   if (!dateStr) return '1/1';
