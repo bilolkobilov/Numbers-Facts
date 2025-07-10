@@ -1,5 +1,6 @@
 import { NumberFact, FormData } from '../types';
 
+const PROXY_URL = 'https://api.allorigins.win/raw?url=';
 const BASE_URL = 'http://numbersapi.com';
 
 function formatDateNumber(dateStr: string): string {
@@ -9,20 +10,29 @@ function formatDateNumber(dateStr: string): string {
 
 export const fetchNumberFact = async (formData: FormData): Promise<NumberFact> => {
   try {
-    let url = BASE_URL;
+    let apiUrl = BASE_URL;
     
     if (formData.mode === 'random') {
-      url += `/random/${formData.type}`;
+      apiUrl += `/random/${formData.type}`;
     } else {
       const number = formData.type === 'date' 
         ? formatDateNumber(formData.number || '1') 
         : formData.number || '1';
-      url += `/${number}/${formData.type}`;
+      apiUrl += `/${number}/${formData.type}`;
     }
     
-    url += '?json';
+    apiUrl += '?json';
+    
+    const url = process.env.NODE_ENV === 'production' 
+      ? `${PROXY_URL}${encodeURIComponent(apiUrl)}`
+      : apiUrl;
     
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
     
     return {
@@ -31,6 +41,7 @@ export const fetchNumberFact = async (formData: FormData): Promise<NumberFact> =
       type: data.type
     };
   } catch (error) {
+    console.error('Error fetching number fact:', error);
     throw new Error('Failed to fetch number fact');
   }
 };
